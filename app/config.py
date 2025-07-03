@@ -16,6 +16,10 @@ class Config:
     
     SQLALCHEMY_DATABASE_URI = database_url or 'sqlite:///app.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
     
     # Google OAuth configuration
     GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
