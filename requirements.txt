@@ -15,3 +15,4 @@ bcrypt==4.0.1
 PyJWT==2.8.0
 psycopg2-binary==2.9.9
 Werkzeug==2.3.7
+twilio==8.10.0
