@@ -1,6 +1,11 @@
 from flask import current_app, url_for, render_template
 from flask_mail import Message
-from twilio.rest import Client
+try:
+    from twilio.rest import Client
+    TWILIO_AVAILABLE = True
+except ImportError:
+    TWILIO_AVAILABLE = False
+    current_app.logger.warning("Twilio not available - SMS functionality disabled") if 'current_app' in locals() else None
 from app import mail
 import logging
 from threading import Thread
@@ -106,6 +111,10 @@ def send_verification_email(to_email, subject, message):
 
 def send_otp_sms(phone_number, otp):
     """Send OTP via SMS (placeholder for actual SMS service integration)"""
-    # TODO: Implement actual SMS service integration
+    if not TWILIO_AVAILABLE:
+        print(f"Twilio not available - would send OTP {otp} to {phone_number}")
+        return True
+    
+    # TODO: Implement actual SMS service integration with Twilio
     print(f"Sending OTP {otp} to {phone_number}")
     return True 

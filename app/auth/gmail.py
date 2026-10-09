@@ -2,14 +2,22 @@ import base64
 from email.message import EmailMessage
 import os
 
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+try:
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
+    from google_auth_oauthlib.flow import InstalledAppFlow
+    from googleapiclient.discovery import build
+    from googleapiclient.errors import HttpError
+    GOOGLE_API_AVAILABLE = True
+except ImportError:
+    GOOGLE_API_AVAILABLE = False
 
 
 def get_token(path, scopes):
+    if not GOOGLE_API_AVAILABLE:
+        print("Google API not available - Gmail functionality disabled")
+        return None
+        
     PATH = path
     SCOPES = scopes
     token = None
@@ -38,6 +46,9 @@ def get_token(path, scopes):
 
 
 def get_service(token_creds):
+    if not GOOGLE_API_AVAILABLE or not token_creds:
+        print("Google API not available or no credentials - Gmail service disabled")
+        return None
 
     try:
         service = build('gmail', 'v1', credentials=token_creds)
@@ -45,10 +56,15 @@ def get_service(token_creds):
 
     except HttpError as error:
         print(f'An error occurred: {error}')
+        return None
 
 
 def get_gmail_credentials():
     """Get Gmail credentials, only called when needed"""
+    if not GOOGLE_API_AVAILABLE:
+        print("Google API not available - Gmail credentials disabled")
+        return None
+        
     cred_file_path = "client_secrets.json"
     scopes = ['https://www.googleapis.com/auth/gmail.readonly',
               'https://www.googleapis.com/auth/gmail.compose']
@@ -66,6 +82,10 @@ def get_gmail_credentials():
 
 def initialize_gmail_credentials():
     """Initialize Gmail credentials at app startup"""
+    if not GOOGLE_API_AVAILABLE:
+        print("Google API not available - skipping Gmail credentials initialization")
+        return None
+        
     print("Initializing Gmail credentials...")
     token_creds = get_gmail_credentials()
     if token_creds:
@@ -85,6 +105,9 @@ def send_gmail_message(subject, reciepent_id,
     Creates and sends a basic email message
     Return: Prints message ID and returns message object.
     """
+    if not GOOGLE_API_AVAILABLE or not service:
+        print("Google API not available or no service - Gmail message not sent")
+        return None
 
     msg = str(message)
 

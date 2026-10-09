@@ -7,8 +7,19 @@ load_dotenv()
 class Config:
     # Flask configuration
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///app.db')
+    
+    # Database configuration - supports both SQLite (dev) and PostgreSQL (production)
+    database_url = os.getenv('DATABASE_URL')
+    if database_url and database_url.startswith('postgres://'):
+        # Fix for Heroku/Vercel postgres URL format
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    
+    SQLALCHEMY_DATABASE_URI = database_url or 'sqlite:///app.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
     
     # Google OAuth configuration
     GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
