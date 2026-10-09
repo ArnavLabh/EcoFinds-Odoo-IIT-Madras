@@ -1,13 +1,20 @@
-from flask import current_app, url_for, render_template
+import logging
+from flask import current_app, has_app_context, url_for, render_template
 from flask_mail import Message
+
+logger = logging.getLogger(__name__)
+
 try:
     from twilio.rest import Client
     TWILIO_AVAILABLE = True
 except ImportError:
     TWILIO_AVAILABLE = False
-    current_app.logger.warning("Twilio not available - SMS functionality disabled") if 'current_app' in locals() else None
+    if has_app_context():
+        current_app.logger.warning("Twilio not available - SMS functionality disabled")
+    else:
+        logger.warning("Twilio not available - SMS functionality disabled")
+
 from app import mail
-import logging
 from threading import Thread
 import os
 import re
@@ -34,10 +41,19 @@ def send_email(subject, recipients, text_body, html_body):
     msg = Message(subject, recipients=recipients)
     msg.body = text_body
     msg.html = html_body
-    
+
+    try:
+        app = current_app._get_current_object() if has_app_context() else None
+    except RuntimeError:
+        app = None
+
+    if app is None:
+        logger.warning("Email send attempted without an active Flask application context; skipping async send.")
+        return
+
     # Send email asynchronously
     Thread(target=send_async_email,
-           args=(current_app._get_current_object(), msg)).start()
+           args=(app, msg)).start()
 
 def send_complaint_notification(complaint, recipient_email, is_admin=False):
     """

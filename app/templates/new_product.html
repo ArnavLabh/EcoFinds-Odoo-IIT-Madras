@@ -76,27 +76,32 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const isAuctionCheckbox = document.getElementById('is_auction');
+    if (!isAuctionCheckbox) {
+        return;
+    }
     const auctionFields = document.getElementById('auction-fields');
     const regularPriceField = document.getElementById('regular-price-field');
     const startPriceInput = document.getElementById('start_price');
     const endTimeInput = document.getElementById('end_time');
     const priceInput = document.getElementById('price');
 
-    isAuctionCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            auctionFields.style.display = 'block';
-            regularPriceField.style.display = 'none';
-            startPriceInput.required = true;
-            endTimeInput.required = true;
-            priceInput.required = false;
-        } else {
-            auctionFields.style.display = 'none';
-            regularPriceField.style.display = 'block';
-            startPriceInput.required = false;
-            endTimeInput.required = false;
-            priceInput.required = true;
-        }
-    });
+    if (auctionFields && regularPriceField) {
+        isAuctionCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                auctionFields.style.display = 'block';
+                regularPriceField.style.display = 'none';
+                if (startPriceInput) startPriceInput.required = true;
+                if (endTimeInput) endTimeInput.required = true;
+                if (priceInput) priceInput.required = false;
+            } else {
+                auctionFields.style.display = 'none';
+                regularPriceField.style.display = 'block';
+                if (startPriceInput) startPriceInput.required = false;
+                if (endTimeInput) endTimeInput.required = false;
+                if (priceInput) priceInput.required = true;
+            }
+        });
+    }
 });
 </script>
 {% endblock %} 

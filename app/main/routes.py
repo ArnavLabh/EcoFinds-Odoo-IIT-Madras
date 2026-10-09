@@ -46,29 +46,66 @@ def product(id):
     product = Product.query.get_or_404(id)
     return render_template('product_detail.html', title=product.title, product=product)
 
+def _validate_product_form_data(title, description, category_id, price, condition, city=None, state=None):
+    """Validate listing form data before saving it."""
+    errors = []
+
+    if not title or len(title.strip()) < 3:
+        errors.append('Title must be at least 3 characters long.')
+    if not description or len(description.strip()) < 10:
+        errors.append('Description must be at least 10 characters long.')
+    if category_id is None:
+        errors.append('Please select a category.')
+    if price is None or price <= 0 or price > 1000000:
+        errors.append('Price must be greater than zero and less than ₹1,000,000.')
+    if condition not in {'new', 'like_new', 'good', 'fair'}:
+        errors.append('Please choose a valid product condition.')
+    if city and len(city.strip()) < 2:
+        errors.append('City must be at least 2 characters long.')
+    if state and len(state.strip()) < 2:
+        errors.append('State must be at least 2 characters long.')
+
+    return errors
+
+
 @bp.route('/product/new', methods=['GET', 'POST'])
 @login_required
 def new_product():
     """Create a new product"""
     if request.method == 'POST':
-        title = request.form.get('title')
-        description = request.form.get('description')
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
         category_id = request.form.get('category_id', type=int)
         condition = request.form.get('condition')
         price = request.form.get('price', type=float)
-        city = request.form.get('city')
-        state = request.form.get('state')
-        image_url = request.form.get('image_url')
-        
-        # Handle image upload
+        city = request.form.get('city', '').strip()
+        state = request.form.get('state', '').strip()
+        image_url = request.form.get('image_url', '').strip()
+
+        errors = _validate_product_form_data(title, description, category_id, price, condition, city, state)
+
         image = request.files.get('image')
-        if image:
+        if image and image.filename:
+            if not image.mimetype or not image.mimetype.startswith('image/'):
+                errors.append('Product image must be an image file.')
+            if image.content_length and image.content_length > 16 * 1024 * 1024:
+                errors.append('Image file size must be 16MB or smaller.')
+
+        if errors:
+            for error in errors:
+                flash(error, 'danger')
+            categories = Category.query.all()
+            return render_template('new_product.html', title='New Product', categories=categories)
+
+        if image and image.filename:
             filename = secure_filename(image.filename)
-            image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            image.save(image_path)
-            image_url = url_for('static', filename=f'uploads/{filename}')
-        
-        # Create new product
+            upload_dir = current_app.config.get('UPLOAD_FOLDER')
+            if upload_dir:
+                os.makedirs(upload_dir, exist_ok=True)
+                image_path = os.path.join(upload_dir, filename)
+                image.save(image_path)
+                image_url = url_for('static', filename=f'uploads/{filename}')
+
         product = Product(
             title=title,
             description=description,
@@ -78,15 +115,15 @@ def new_product():
             seller_id=current_user.id,
             city=city,
             state=state,
-            image_url=image_url
+            image_url=image_url or None
         )
-        
+
         db.session.add(product)
         db.session.commit()
-        
+
         flash(_('Product added successfully!'), 'success')
         return redirect(url_for('main.product', id=product.id))
-    
+
     categories = Category.query.all()
     return render_template('new_product.html', title='New Product', categories=categories)
 
@@ -95,32 +132,55 @@ def new_product():
 def edit_product(id):
     """Edit an existing product"""
     product = Product.query.get_or_404(id)
-    
+
     if product.seller != current_user:
         flash('You can only edit your own products.', 'danger')
         return redirect(url_for('main.product', id=product.id))
-    
+
     if request.method == 'POST':
-        product.title = request.form.get('title')
-        product.description = request.form.get('description')
-        product.price = request.form.get('price')
-        product.category_id = request.form.get('category_id', type=int)
-        product.condition = request.form.get('condition')
-        
-        # Handle image upload
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        category_id = request.form.get('category_id', type=int)
+        price = request.form.get('price', type=float)
+        condition = request.form.get('condition')
+        image_url = request.form.get('image_url', '').strip()
+
+        errors = _validate_product_form_data(title, description, category_id, price, condition, request.form.get('city', '').strip(), request.form.get('state', '').strip())
+        if errors:
+            for error in errors:
+                flash(error, 'danger')
+            categories = Category.query.all()
+            return render_template('edit_product.html', title='Edit Product', product=product, categories=categories)
+
+        product.title = title
+        product.description = description
+        product.price = price
+        product.category_id = category_id
+        product.condition = condition
+        product.city = request.form.get('city', '').strip() or product.city
+        product.state = request.form.get('state', '').strip() or product.state
+
         image = request.files.get('image')
-        if image:
+        if image and image.filename:
+            if not image.mimetype or not image.mimetype.startswith('image/'):
+                flash('Product image must be an image file.', 'danger')
+                return redirect(url_for('main.edit_product', id=product.id))
             filename = secure_filename(image.filename)
-            image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            image.save(image_path)
-            product.image_url = url_for('static', filename=f'uploads/{filename}')
-        
+            upload_dir = current_app.config.get('UPLOAD_FOLDER')
+            if upload_dir:
+                os.makedirs(upload_dir, exist_ok=True)
+                image_path = os.path.join(upload_dir, filename)
+                image.save(image_path)
+                product.image_url = url_for('static', filename=f'uploads/{filename}')
+        elif image_url:
+            product.image_url = image_url
+
         db.session.commit()
         flash('Your product has been updated!', 'success')
         return redirect(url_for('main.product', id=product.id))
-    
+
     categories = Category.query.all()
-    return render_template('edit_product.html', title='Edit Product', 
+    return render_template('edit_product.html', title='Edit Product',
                          product=product, categories=categories)
 
 @bp.route('/product/<int:id>/delete', methods=['POST'])
@@ -751,7 +811,15 @@ def add_to_cart(product_id):
     if product.is_sold:
         flash('This product is no longer available.', 'warning')
         return redirect(url_for('main.product', id=product_id))
-    # Add the product to the user's cart
+    if product.seller_id == current_user.id:
+        flash('You cannot add your own product to the cart.', 'warning')
+        return redirect(url_for('main.product', id=product_id))
+
+    existing = CartItem.query.filter_by(user_id=current_user.id, product_id=product.id).first()
+    if existing and existing.quantity >= 10:
+        flash('You cannot add more than 10 units of the same item.', 'warning')
+        return redirect(url_for('main.cart'))
+
     current_user.add_to_cart(product)
     flash('Product added to cart!', 'success')
     return redirect(url_for('main.cart'))
@@ -767,21 +835,30 @@ def set_language(lang_code):
 def update_cart_quantity(cart_item_id):
     """Update the quantity of a product in the cart"""
     cart_item = CartItem.query.get_or_404(cart_item_id)
-    
+
     if cart_item.user_id != current_user.id:
         flash(_('You do not have permission to update this cart item'), 'danger')
         return redirect(url_for('main.cart'))
-    
+
+    if cart_item.product is None or cart_item.product.is_sold:
+        flash('This item is no longer available.', 'warning')
+        db.session.delete(cart_item)
+        db.session.commit()
+        return redirect(url_for('main.cart'))
+
     action = request.form.get('action')
-    
+
     if action == 'increment':
-        cart_item.quantity += 1
+        if cart_item.quantity >= 10:
+            flash('Maximum quantity reached for this item.', 'warning')
+        else:
+            cart_item.quantity += 1
     elif action == 'decrement':
         if cart_item.quantity > 1:
             cart_item.quantity -= 1
         else:
             db.session.delete(cart_item)
-    
+
     db.session.commit()
     return redirect(url_for('main.cart'))
 
@@ -804,48 +881,60 @@ def remove_from_cart(cart_item_id):
 @bp.route('/purchase_cart', methods=['POST'])
 @login_required
 def purchase_cart():
-    """Purchase all items in the cart"""
+    """Purchase all items in the cart."""
     cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
-    
+
     if not cart_items:
         flash('Your cart is empty', 'warning')
         return redirect(url_for('main.cart'))
-    
-    total_amount = sum(item.product.price * item.quantity for item in cart_items)
-    eco_points = request.form.get('eco_points', type=int) or 0
-    
+
+    valid_items = []
+    for item in cart_items:
+        if item.product is None or item.product.is_sold or item.product.seller_id == current_user.id:
+            flash(f"{item.product.title if item.product else 'An item'} is not available and was removed from your cart.", 'warning')
+            db.session.delete(item)
+            continue
+        if item.quantity <= 0 or item.quantity > 10:
+            flash('Each item must have a valid quantity between 1 and 10.', 'warning')
+            db.session.delete(item)
+            continue
+        valid_items.append(item)
+
+    db.session.commit()
+    if not valid_items:
+        return redirect(url_for('main.cart'))
+
+    total_amount = sum(item.product.price * item.quantity for item in valid_items)
+    eco_points = max(0, int(request.form.get('eco_points', 0) or 0))
+
     if eco_points > current_user.eco_points:
         flash('You do not have enough ECO points', 'danger')
         return redirect(url_for('main.cart'))
-    
-    # Calculate discount from ECO points (1 point = $0.01)
+
     discount = eco_points * 0.01
-    final_amount = max(0, total_amount - discount)
-    
-    # Create purchase records
-    for item in cart_items:
+    final_amount = max(0.0, total_amount - discount)
+
+    if total_amount <= 0:
+        flash('Purchase total must be greater than zero.', 'warning')
+        return redirect(url_for('main.cart'))
+
+    for item in valid_items:
         order = Order(
             user_id=current_user.id,
             product_id=item.product.id,
-            price=item.product.price * item.quantity,
+            price=item.product.price,
             quantity=item.quantity,
             status='purchased'
         )
         db.session.add(order)
-    
-    # Update user's ECO points
-    current_user.eco_points -= eco_points
-    
-    # Award new ECO points (10% of final amount)
-    points_earned = int(final_amount / 10)  # 10 points per dollar
-    current_user.eco_points += points_earned
-    
-    # Clear cart
-    for item in cart_items:
+        item.product.is_sold = True
         db.session.delete(item)
-    
+
+    current_user.eco_points -= eco_points
+    points_earned = int(final_amount / 10)
+    current_user.eco_points += points_earned
     db.session.commit()
-    
+
     flash(f'Purchase completed successfully! You earned {points_earned} ECO points.', 'success')
     return redirect(url_for('main.orders'))
 

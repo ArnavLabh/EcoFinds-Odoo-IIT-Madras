@@ -9,7 +9,7 @@ from flask_babel import _
 from app.auth.google_auth import verify_google_token
 import secrets
 import os
-from werkzeug.urls import url_parse
+from urllib.parse import urlsplit
 from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
 from app.auth.email_utils import send_password_reset_email, send_verification_email
 
@@ -136,7 +136,7 @@ def login():
             return redirect(url_for('auth.login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
+        if not next_page or urlsplit(next_page).netloc != '':
             next_page = url_for('main.index')
         return redirect(next_page)
     return render_template('auth/login.html', title='Sign In', form=form)

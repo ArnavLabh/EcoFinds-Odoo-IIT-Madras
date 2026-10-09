@@ -1,12 +1,11 @@
 {% extends 'base.html' %}
 {% block title %}Edit Product - EcoFinds{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <div class="container d-flex justify-content-center align-items-center" style="min-height:70vh;">
-    <div class="card shadow p-4" style="width: 100%; max-width: 500px;">
+    <div class="card shadow p-4" style="width: 100%; max-width: 600px;">
         <a href="{{ url_for('main.products') }}" class="btn btn-secondary mb-3">&larr; Back</a>
         <h2 class="text-center mb-4">Edit Product</h2>
-        <form action="{{ url_for('main.edit_product', product_id=product.id) }}" method="POST">
+        <form action="{{ url_for('main.edit_product', id=product.id) }}" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="title" class="form-label">Product Title:</label>
                 <input type="text" id="title" name="title" class="form-control" value="{{ product.title }}" required>
@@ -29,8 +28,29 @@
                 <input type="number" id="price" name="price" min="0" step="0.01" class="form-control" value="{{ product.price }}" required>
             </div>
             <div class="mb-3">
-                <label for="image_url" class="form-label">+ Add Image (URL or leave blank for placeholder):</label>
-                <input type="text" id="image_url" name="image_url" class="form-control" value="{{ product.image_url }}" placeholder="Image URL">
+                <label for="condition" class="form-label">Condition:</label>
+                <select id="condition" name="condition" class="form-select" required>
+                    <option value="new" {% if product.condition == 'new' %}selected{% endif %}>New</option>
+                    <option value="like_new" {% if product.condition == 'like_new' %}selected{% endif %}>Like New</option>
+                    <option value="good" {% if product.condition == 'good' %}selected{% endif %}>Good</option>
+                    <option value="fair" {% if product.condition == 'fair' %}selected{% endif %}>Fair</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="city" class="form-label">City:</label>
+                <input type="text" id="city" name="city" class="form-control" value="{{ product.city or '' }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="state" class="form-label">State:</label>
+                <input type="text" id="state" name="state" class="form-control" value="{{ product.state or '' }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="image" class="form-label">Upload New Image</label>
+                <input type="file" id="image" name="image" class="form-control" accept="image/*">
+            </div>
+            <div class="mb-3">
+                <label for="image_url" class="form-label">Image URL (optional)</label>
+                <input type="text" id="image_url" name="image_url" class="form-control" value="{{ product.image_url or '' }}" placeholder="Image URL">
             </div>
             <button type="submit" class="btn btn-success w-100">Update Listing</button>
         </form>
