@@ -11,7 +11,7 @@ import secrets
 import os
 from werkzeug.urls import url_parse
 from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
-from app.auth.email import send_password_reset_email
+from app.auth.email_utils import send_password_reset_email, send_verification_email
 
 from app.auth import bp
 

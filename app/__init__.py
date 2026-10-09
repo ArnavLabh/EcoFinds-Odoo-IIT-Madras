@@ -49,6 +49,12 @@ def create_app(config_class=Config):
     app.config['BABEL_DEFAULT_LOCALE'] = 'en'
     app.config['BABEL_TRANSLATION_DIRECTORIES'] = os.path.join(app.root_path, 'translations')
 
+    def get_locale():
+        # Try to get the language from the session
+        return session.get('language', 'en')
+
+    babel.init_app(app, locale_selector=get_locale)
+
     # Register blueprints
     from app.auth import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -111,11 +117,6 @@ def create_app(config_class=Config):
             except Exception as e:
                 app.logger.error(f"Error creating demo products: {str(e)}")
                 db.session.rollback()
-
-    @babel.localeselector
-    def get_locale():
-        # Try to get the language from the session
-        return session.get('language', 'en')
 
     @app.route('/set_language/<lang_code>')
     def set_language(lang_code):

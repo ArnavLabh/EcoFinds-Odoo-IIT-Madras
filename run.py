@@ -38,10 +38,26 @@ with app.app_context():
                 print("Demo admin user created with ID 1")
             else:
                 # If other users exist, create demo user normally
+                # Check if phone number is already taken
+                existing_phone = User.query.filter_by(phone_number='+1234567890').first()
+                if existing_phone and existing_phone.email != 'demo@ecofinds.com':
+                    # Phone number is taken by another user, use a different one
+                    phone_number = '+1234567891'
+                else:
+                    phone_number = '+1234567890'
+                
+                # Check if username is already taken
+                existing_username = User.query.filter_by(username='John Smith').first()
+                if existing_username and existing_username.email != 'demo@ecofinds.com':
+                    # Username is taken, use a different one
+                    username = 'John Smith (Demo)'
+                else:
+                    username = 'John Smith'
+                
                 user = User(
                     email='demo@ecofinds.com',
-                    username='John Smith',
-                    phone_number='+1234567890',
+                    username=username,
+                    phone_number=phone_number,
                     is_email_verified=True,
                     is_phone_verified=True,
                     eco_points=150,
@@ -49,9 +65,14 @@ with app.app_context():
                     is_admin=True  # Make this user an admin
                 )
                 user.set_password('demo123')
-                db.session.add(user)
-                db.session.commit()
-                print("Demo admin user created with auto-generated ID")
+                try:
+                    db.session.add(user)
+                    db.session.commit()
+                    print("Demo admin user created with auto-generated ID")
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"Error creating demo user: {str(e)}")
+                    raise
         else:
             # Update existing demo user to be admin if not already
             if not demo_user.is_admin:
