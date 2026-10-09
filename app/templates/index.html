@@ -1,107 +1,311 @@
 {% extends 'base.html' %}
 {% block title %}{{ _('Welcome') }} - EcoFinds{% endblock %}
+
+{% block styles %}
+<style>
+    .home-page {
+        --home-ink: var(--text-color);
+        --home-muted: #5c6b73;
+        --home-accent: #1f7a4d;
+        --home-accent-soft: #e7f4ec;
+        --home-border: var(--border-color);
+        --home-card: var(--card-bg);
+        --home-shadow: 0 1px 2px rgba(28, 42, 36, 0.06), 0 8px 24px rgba(28, 42, 36, 0.04);
+    }
+
+    [data-bs-theme="dark"] .home-page {
+        --home-muted: #b7c2c0;
+        --home-accent: #4caf7a;
+        --home-accent-soft: #1e3328;
+        --home-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .home-page .home-hero {
+        padding: 1.25rem 0 2.5rem;
+        text-align: left;
+    }
+
+    .home-page .home-kicker {
+        display: inline-block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--home-accent);
+        margin-bottom: 0.75rem;
+    }
+
+    .home-page .home-hero h1 {
+        font-size: clamp(1.75rem, 4vw, 2.6rem);
+        font-weight: 650;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        max-width: 18ch;
+        margin-bottom: 1rem;
+        color: var(--home-ink);
+    }
+
+    .home-page .home-hero .lead {
+        font-size: 1.05rem;
+        line-height: 1.65;
+        color: var(--home-muted);
+        max-width: 42rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .home-page .home-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .home-page .btn-home-primary,
+    .home-page .btn-home-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.75rem;
+        padding: 0.6rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .home-page .btn-home-primary {
+        background-color: var(--home-accent);
+        color: #fff;
+        border-color: var(--home-accent);
+    }
+
+    .home-page .btn-home-primary:hover,
+    .home-page .btn-home-primary:focus-visible {
+        background-color: #17633e;
+        border-color: #17633e;
+        color: #fff;
+        box-shadow: 0 0 0 3px rgba(31, 122, 77, 0.25);
+    }
+
+    .home-page .btn-home-secondary {
+        background-color: transparent;
+        color: var(--home-accent);
+        border-color: var(--home-accent);
+    }
+
+    .home-page .btn-home-secondary:hover,
+    .home-page .btn-home-secondary:focus-visible {
+        background-color: var(--home-accent-soft);
+        color: var(--home-accent);
+        box-shadow: 0 0 0 3px rgba(31, 122, 77, 0.2);
+    }
+
+    .home-page h2 {
+        font-size: 1.35rem;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+        margin-bottom: 1.25rem;
+        color: var(--home-ink);
+    }
+
+    .home-page .home-card {
+        height: 100%;
+        background: var(--home-card);
+        border: 1px solid var(--home-border);
+        border-radius: 12px;
+        box-shadow: none;
+        padding: 1.35rem 1.25rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .home-page .home-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(31, 122, 77, 0.45);
+        box-shadow: var(--home-shadow);
+    }
+
+    .home-page a.home-card-link {
+        display: block;
+        height: 100%;
+        color: inherit;
+        text-decoration: none;
+        border-radius: 12px;
+    }
+
+    .home-page a.home-card-link:focus-visible .home-card,
+    .home-page .home-card:focus-within {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(31, 122, 77, 0.28);
+        border-color: var(--home-accent);
+    }
+
+    .home-page .home-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--home-accent-soft);
+        color: var(--home-accent);
+        margin-bottom: 0.9rem;
+        font-size: 1.05rem;
+    }
+
+    .home-page .home-card h3 {
+        font-size: 1.05rem;
+        font-weight: 650;
+        margin-bottom: 0.45rem;
+        color: var(--home-ink);
+    }
+
+    .home-page .home-card p {
+        margin-bottom: 0;
+        color: var(--home-muted);
+        font-size: 0.95rem;
+        line-height: 1.55;
+    }
+
+    .home-page .home-section {
+        padding: 0.5rem 0 2.5rem;
+    }
+
+    .home-page .home-checkout {
+        border: 1px solid var(--home-border);
+        border-radius: 12px;
+        background: var(--home-card);
+        padding: 1.35rem 1.4rem;
+    }
+
+    .home-page .home-checkout h2 {
+        margin-bottom: 0.5rem;
+    }
+
+    .home-page .home-checkout p {
+        margin-bottom: 0;
+        color: var(--home-muted);
+        max-width: 46rem;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 575.98px) {
+        .home-page .home-hero {
+            padding-top: 0.5rem;
+        }
+
+        .home-page .btn-home-primary,
+        .home-page .btn-home-secondary {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8 text-center">
-            <h1 class="display-4 mb-4">{{ _('Welcome to EcoFinds') }}</h1>
-            <p class="lead mb-4">{{ _('Your marketplace for sustainable and eco-friendly products') }}</p>
-            
-            <div class="row mb-5">
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ _('Buy') }}</h5>
-                            <p class="card-text">{{ _('Discover eco-friendly products from local sellers') }}</p>
-                            <a href="{{ url_for('main.products') }}" class="btn btn-success">{{ _('Browse Products') }}</a>
-                        </div>
-                    </div>
+<div class="home-page">
+    <section class="home-hero" aria-labelledby="home-hero-heading">
+        <span class="home-kicker">{{ _('EcoFinds Marketplace') }}</span>
+        <h1 id="home-hero-heading">{{ _('Give Good Products a Second Life.') }}</h1>
+        <p class="lead">{{ _('Buy and sell reusable and eco-friendly products in one place. Discover useful items, connect with buyers and sellers, and make more mindful purchasing choices.') }}</p>
+        <div class="home-actions">
+            <a class="btn-home-primary" href="{{ url_for('main.products') }}">{{ _('Explore Products') }}</a>
+            <a class="btn-home-secondary" href="{{ url_for('main.new_product') }}">{{ _('Start Selling') }}</a>
+        </div>
+    </section>
+
+    <section class="home-section" aria-labelledby="buy-sell-earn-heading">
+        <h2 id="buy-sell-earn-heading">{{ _('Buy, Sell, and Earn') }}</h2>
+        <div class="row g-3 g-md-4">
+            <div class="col-12 col-md-4">
+                <div class="home-card">
+                    <div class="home-icon" aria-hidden="true"><i class="fas fa-bag-shopping"></i></div>
+                    <h3>{{ _('Buy') }}</h3>
+                    <p>{{ _('Discover products listed by other users.') }}</p>
                 </div>
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ _('Sell') }}</h5>
-                            <p class="card-text">{{ _('List your sustainable products for sale') }}</p>
-                            {% if current_user.is_authenticated %}
-                                <a href="{{ url_for('main.new_product') }}" class="btn btn-success">{{ _('Create Listing') }}</a>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="home-card">
+                    <div class="home-icon" aria-hidden="true"><i class="fas fa-tag"></i></div>
+                    <h3>{{ _('Sell') }}</h3>
+                    <p>{{ _('Give usable products another opportunity by listing them for sale.') }}</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="home-card">
+                    <div class="home-icon" aria-hidden="true"><i class="fas fa-coins"></i></div>
+                    <h3>{{ _('Earn') }}</h3>
+                    <p>{{ _('Earn and redeem ECO Points according to the existing application rules.') }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-section" aria-labelledby="featured-categories-heading">
+        <h2 id="featured-categories-heading">{{ _('Featured Categories') }}</h2>
+        <div class="row g-3 g-md-4">
+            {% for category in categories %}
+            <div class="col-12 col-sm-6 col-lg-3">
+                <a class="home-card-link" href="{{ url_for('main.products', category=category.id) }}">
+                    <div class="home-card">
+                        <div class="home-icon" aria-hidden="true">
+                            {% if category.name == 'Eco-Friendly' %}
+                                <i class="fas fa-leaf"></i>
+                            {% elif category.name == 'Recycled' %}
+                                <i class="fas fa-recycle"></i>
+                            {% elif category.name == 'Water Saving' %}
+                                <i class="fas fa-droplet"></i>
                             {% else %}
-                                <a href="{{ url_for('auth.login') }}" class="btn btn-success">{{ _('Login to Sell') }}</a>
+                                <i class="fas fa-box-open"></i>
                             {% endif %}
                         </div>
+                        <h3>{{ category.name }}</h3>
+                        <p>{{ category.description }}</p>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ _('Earn') }}</h5>
-                            <p class="card-text">{{ _('Get ECO points for your sustainable actions') }}</p>
-                            {% if current_user.is_authenticated %}
-                                <a href="{{ url_for('auth.profile') }}" class="btn btn-success">{{ _('View Points') }}</a>
-                            {% else %}
-                                <a href="{{ url_for('auth.login') }}" class="btn btn-success">{{ _('Login to Earn') }}</a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+                </a>
             </div>
+            {% endfor %}
         </div>
-    </div>
+    </section>
 
-    <div class="row mb-5">
-        <div class="col-12">
-            <h2 class="mb-4">{{ _('Featured Categories') }}</h2>
-            <div class="row">
-                {% for category in categories %}
-                <div class="col-md-3 mb-3">
-                    <a href="{{ url_for('main.products', category=category.id) }}" class="text-decoration-none">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <h5 class="card-title">{{ category.name }}</h5>
-                                <p class="card-text text-muted">{{ category.description }}</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="d-flex align-items-center mb-3">
-                <i class="fas fa-shield-alt fa-2x text-primary me-3"></i>
-                <div>
-                    <h5 class="mb-0">{{ _('Secure Checkout') }}</h5>
-                    <small class="text-muted">{{ _('100%% secure payment') }}</small>
+    <section class="home-section" aria-labelledby="why-ecofinds-heading">
+        <h2 id="why-ecofinds-heading">{{ _('Why Choose EcoFinds?') }}</h2>
+        <div class="row g-3 g-md-4">
+            <div class="col-12 col-md-6">
+                <div class="home-card">
+                    <div class="home-icon" aria-hidden="true"><i class="fas fa-seedling"></i></div>
+                    <h3>{{ _('A marketplace for reusable products') }}</h3>
+                    <p>{{ _('Find and list sustainable and reusable items in a dedicated buy-and-sell marketplace.') }}</p>
                 </div>
             </div>
+            <div class="col-12 col-md-6">
+                <div class="home-card">
+                    <div class="home-icon" aria-hidden="true"><i class="fas fa-comments"></i></div>
+                    <h3>{{ _('Direct buyer–seller communication') }}</h3>
+                    <p>{{ _('Message about a listing through the existing product chat so buyers and sellers can coordinate.') }}</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="home-card">
+                    <div class="home-icon" aria-hidden="true"><i class="fas fa-location-dot"></i></div>
+                    <h3>{{ _('Condition and location details') }}</h3>
+                    <p>{{ _('Listings can include product condition plus city and state, so you know more before you buy.') }}</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="home-card">
+                    <div class="home-icon" aria-hidden="true"><i class="fas fa-star"></i></div>
+                    <h3>{{ _('Ratings, reviews, and ECO Points') }}</h3>
+                    <p>{{ _('Use existing ratings and reviews after orders, and earn or redeem ECO Points at checkout.') }}</p>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Features Section -->
-    <div class="row my-5">
-        <div class="col-12 text-center mb-4">
-            <h2>{{ _('Why Choose EcoFinds?') }}</h2>
+    <section class="home-section" aria-labelledby="checkout-heading">
+        <div class="home-checkout">
+            <h2 id="checkout-heading">{{ _('Checkout') }}</h2>
+            <p>{{ _('Complete purchases from your cart in the app. You can review items, redeem ECO Points toward the total, and record the order in your account. EcoFinds currently uses in-app checkout and does not process live card payments.') }}</p>
         </div>
-        <div class="col-md-4">
-            <div class="text-center">
-                <i class="fas fa-leaf fa-3x text-success mb-3"></i>
-                <h4>{{ _('Eco-Friendly Products') }}</h4>
-                <p>{{ _('All products are verified for their environmental impact') }}</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="text-center">
-                <i class="fas fa-recycle fa-3x text-success mb-3"></i>
-                <h4>{{ _('Recycled Materials') }}</h4>
-                <p>{{ _('Products made from recycled and sustainable materials') }}</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="text-center">
-                <i class="fas fa-tint fa-3x text-success mb-3"></i>
-                <h4>{{ _('Water Saving') }}</h4>
-                <p>{{ _('Products designed to reduce water consumption') }}</p>
-            </div>
-        </div>
-    </div>
+    </section>
 </div>
 {% endblock %}
